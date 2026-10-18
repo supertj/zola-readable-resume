@@ -1,0 +1,16 @@
+name = "readable-resume"
+description = "A one-page resume in one column that prints to a clean PDF on Letter or A4"
+tags = ["resume", "cv", "minimal", "print"]
+license = "MIT"
+homepage = "https://github.com/supertj/zola-readable-resume"
+min_version = "0.23.0"
+demo = "https://readableresume.com/zola-resume-theme"
+
+# Defaults for the options your zola.toml can set under [extra]
+[extra]
+# letter or a4: the page size and margins used when you print to PDF
+resume_paper = "letter"
+
+[author]
+name = "Super Lede"
+homepage = "https://readableresume.com"

@@ -1,0 +1,16 @@
+# Config for the sample site in this repository. When you use the theme from
+# your own site, copy the [markdown] and [extra] settings into your zola.toml.
+
+base_url = "https://example.com"
+compile_sass = false
+build_search_index = false
+
+[markdown]
+# Curly quotes and apostrophes, and -- becomes an en dash, like the original
+smart_punctuation = true
+# Links to other sites get rel="nofollow", in the contact line as well
+external_links_no_follow = true
+
+[extra]
+# letter or a4: the page size and margins used when you print to PDF
+resume_paper = "letter"

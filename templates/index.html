@@ -1,0 +1,210 @@
+{#-
+  Readable Resume: the Classic layout from ReadableResume, as one page.
+  The resume comes from the front matter of content/_index.md, the paper size
+  from resume_paper in zola.toml.
+-#}
+{%- set resume = section.extra -%}
+
+{#- Same page setup as the Google Docs original: 0.6 in margins on US Letter,
+    15 mm on A4. Width and height draw the sheet on screen. -#}
+{%- set papers = {
+  "letter": {"size": "letter", "width": "8.5in", "height": "11in", "margin": "0.6in"},
+  "a4": {"size": "A4", "width": "210mm", "height": "297mm", "margin": "15mm"},
+} -%}
+{%- set paper_name = config.extra.resume_paper | default(value="letter") | str | lower -%}
+{%- if paper_name not in papers -%}
+  {{ throw(message="resume_paper in zola.toml should be letter or a4, not \"" ~ paper_name ~ "\".") }}
+{%- endif -%}
+{%- set paper = papers[paper_name] -%}
+
+{#- Contact links to other sites get the same attributes as Markdown links,
+    so [markdown] external_links_no_follow and friends cover the whole page. -#}
+{%- set md = config.markdown -%}
+{%- set external_rel = [value for value in [
+  "noopener" if md.external_links_target_blank else "",
+  "nofollow" if md.external_links_no_follow else "",
+  "noreferrer" if md.external_links_no_referrer else "",
+  "external" if md.external_links_external else "",
+] if value] | join(sep=" ") -%}
+{%- set external_attrs = (" class=\"" ~ (md.external_links_class | escape_html) ~ "\"" if md.external_links_class else "")
+  ~ (" target=\"_blank\"" if md.external_links_target_blank else "")
+  ~ (" rel=\"" ~ external_rel ~ "\"" if external_rel else "") -%}
+
+{#- Set only when building the live demo on readableresume.com. It adds a
+    canonical link and a short note above the resume. Leave it unset. -#}
+{%- set demo_url = get_env(name="READABLE_RESUME_DEMO_URL", default="") -%}
+
+{#- Whether an entry has a school, a company or a name decides its layout -#}
+{%- set entry_fields = {
+  "school": ["school", "location", "degree", "date"],
+  "company": ["company", "location", "title", "date"],
+  "name": ["name", "role", "date"],
+} -%}
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{% if section.title %}{{ section.title }} – Resume{% else %}Resume{% endif %}{% endblock title %}</title>
+{%- if section.description %}
+<meta name="description" content="{{ section.description }}">
+{%- endif %}
+{%- if demo_url %}
+<link rel="canonical" href="{{ demo_url }}">
+{%- endif %}
+<style>
+@page { size: {{ paper.size }}; margin: {{ paper.margin }}; }
+:root { --sheet-width: {{ paper.width }}; --sheet-height: {{ paper.height }}; --sheet-margin: {{ paper.margin }}; }
+</style>
+{% block head %}{% include "partials/style.html" %}{% endblock head %}
+</head>
+<body>
+{%- if demo_url %}
+<aside class="demo-note">
+  <p>This is the demo of <a href="https://github.com/supertj/zola-readable-resume" rel="nofollow">zola-readable-resume</a>, a one-page resume theme for Zola. The layout is the <a href="https://readableresume.com/templates/classic">Classic template from ReadableResume</a>, which is also free for Google Docs and Word. Print the page to see the PDF.</p>
+</aside>
+{%- endif %}
+{%- block before_resume %}{% endblock before_resume %}
+<main class="sheet">
+  <header>
+    {%- if section.title %}
+    <h1>{{ section.title }}</h1>
+    {%- endif %}
+    {%- if resume.contact %}
+    <p class="contact">
+      {%- for item in resume.contact -%}
+      {%- if item is map -%}
+        {%- for key in item | keys -%}
+          {%- if key not in ["text", "url"] -%}
+            {{ throw(message="content/_index.md: unknown field \"" ~ key ~ "\" in a contact item. Expected text or url.") }}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- set url = item.url | default(value="") | str -%}
+        {%- set text = item.text | default(value=url) | str -%}
+      {%- else -%}
+        {%- set text = item | str -%}
+        {%- set lowered = text | lower -%}
+        {%- if lowered is starting_with(pat="https://") or lowered is starting_with(pat="http://") -%}
+          {%- set url = text -%}
+        {%- elif lowered is starting_with(pat="mailto:") -%}
+          {%- set url = text -%}
+          {%- set text = text[7:] -%}
+        {%- elif "@" in text and " " not in text and "/" not in text -%}
+          {%- set url = "mailto:" ~ text -%}
+        {%- else -%}
+          {%- set url = "" -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- set scheme = url | lower -%}
+      {%- if not url -%}
+        {{ text | markdown(inline=true) | safe }}
+      {%- elif scheme is starting_with(pat="https://") or scheme is starting_with(pat="http://") -%}
+        <a href="{{ url }}"{{ external_attrs | safe }}>{{ text }}</a>
+      {%- elif scheme is starting_with(pat="mailto:") or scheme is starting_with(pat="tel:") -%}
+        <a href="{{ url }}">{{ text }}</a>
+      {%- else -%}
+        {#- Only these schemes, so a pasted javascript: link can't end up on the page -#}
+        {{ throw(message="content/_index.md: a contact url should start with https://, http://, mailto: or tel:, not \"" ~ url ~ "\".") }}
+      {%- endif -%}
+      {%- if not loop.last %} | {% endif -%}
+      {%- endfor -%}
+    </p>
+    {%- endif %}
+  </header>
+  {%- for resume_section in resume.sections | default(value=[]) %}
+  {%- for key in resume_section | keys -%}
+    {%- if key not in ["title", "text", "entries", "lines"] -%}
+      {{ throw(message="content/_index.md: unknown field \"" ~ key ~ "\" in a section. Expected one of: title, text, entries, lines.") }}
+    {%- endif -%}
+  {%- endfor %}
+  <section>
+    {%- if resume_section.title %}
+    <h2>{{ resume_section.title | str | markdown(inline=true) | safe }}</h2>
+    {%- endif %}
+    {%- if resume_section.text %}
+    {{ resume_section.text | str | markdown | trim | safe }}
+    {%- endif %}
+    {%- for entry in resume_section.entries | default(value=[]) %}
+    {%- set kind = [field for field in ["school", "company", "name"] if field in entry] | first -%}
+    {%- set where = "an entry under \"" ~ (resume_section.title | default(value="a section")) ~ "\"" -%}
+    {%- if not kind and entry | keys | length > (1 if "bullets" in entry else 0) -%}
+      {{ throw(message="content/_index.md: " ~ where ~ " needs a school, company or name field to say how it's laid out.") }}
+    {%- endif -%}
+    {%- for key in entry | keys -%}
+      {%- if key != "bullets" and (not kind or key not in entry_fields[kind]) -%}
+        {{ throw(message="content/_index.md: unknown field \"" ~ key ~ "\" in " ~ where ~ ". Expected one of: " ~ (entry_fields[kind] | join(sep=", ")) ~ ", bullets.") }}
+      {%- endif -%}
+    {%- endfor -%}
+    {#- Each field as inline Markdown, empty when it's left out -#}
+    {%- set school = entry.school | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set company = entry.company | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set entry_name = entry.name | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set location = entry.location | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set degree = entry.degree | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set job_title = entry.title | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set role = entry.role | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- set date = entry.date | default(value="") | str | markdown(inline=true) | trim -%}
+    {%- if kind == "school" -%}
+      {#- School and location, then degree and dates in italics -#}
+      {%- set rows = [
+        [("<strong>" ~ school ~ "</strong>") if school else "", location],
+        [("<em>" ~ degree ~ "</em>") if degree else "", ("<em>" ~ date ~ "</em>") if date else ""],
+      ] -%}
+    {%- elif kind == "company" -%}
+      {#- Company and location, then the job title in italics with the dates -#}
+      {%- set rows = [
+        [("<strong>" ~ company ~ "</strong>") if company else "", location],
+        [("<em>" ~ job_title ~ "</em>") if job_title else "", date],
+      ] -%}
+    {%- elif kind == "name" -%}
+      {#- One line: "Name | Role" with the dates on the right -#}
+      {%- set label = [value for value in [
+        ("<strong>" ~ entry_name ~ "</strong>") if entry_name else "",
+        ("<em>" ~ role ~ "</em>") if role else "",
+      ] if value] | join(sep=" | ") -%}
+      {%- set rows = [[label, date]] -%}
+    {%- else -%}
+      {%- set rows = [] -%}
+    {%- endif -%}
+    {%- set rows = [row for row in rows if row[0] or row[1]] %}
+    <div class="entry">
+      {%- if rows %}
+      <div class="entry-head">
+        {%- for row in rows %}
+        <p class="row"><span>{{ row[0] | safe }}</span>{% if row[1] %} <span class="right">{{ row[1] | safe }}</span>{% endif %}</p>
+        {%- endfor %}
+      </div>
+      {%- endif %}
+      {%- if entry.bullets %}
+      {# role="list" because Safari stops announcing a list once list-style is none -#}
+      <ul role="list">
+        {%- for bullet in entry.bullets %}
+        <li>{{ bullet | str | markdown(inline=true) | trim | safe }}</li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </div>
+    {%- endfor %}
+    {%- if resume_section.lines %}
+    <p class="lines">
+      {%- for line in resume_section.lines -%}
+      {%- if line is map -%}
+        {%- for key in line | keys -%}
+          {%- if key not in ["label", "text"] -%}
+            {{ throw(message="content/_index.md: unknown field \"" ~ key ~ "\" in a line. Expected label or text.") }}
+          {%- endif -%}
+        {%- endfor -%}
+        <strong>{{ line.label | default(value="") | str | markdown(inline=true) | trim | safe }}:</strong> {{ line.text | default(value="") | str | markdown(inline=true) | trim | safe }}
+      {%- else -%}
+        {{ line | str | markdown(inline=true) | trim | safe }}
+      {%- endif -%}
+      {%- if not loop.last %}<br>{% endif -%}
+      {%- endfor -%}
+    </p>
+    {%- endif %}
+  </section>
+  {%- endfor %}
+</main>
+{%- block after_resume %}{% endblock after_resume %}
+</body>
+</html>
