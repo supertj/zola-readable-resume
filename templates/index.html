@@ -89,7 +89,8 @@
         {%- elif lowered is starting_with(pat="mailto:") -%}
           {%- set url = text -%}
           {%- set text = text[7:] -%}
-        {%- elif "@" in text and " " not in text and "/" not in text -%}
+        {#- Only a bare address, so Markdown such as [Email](mailto:...) stays Markdown -#}
+        {%- elif text | regex_replace(pattern=`^[A-Za-z0-9._%+'-]+@[A-Za-z0-9-]+([.][A-Za-z0-9-]+)+$`, rep="") == "" -%}
           {%- set url = "mailto:" ~ text -%}
         {%- else -%}
           {%- set url = "" -%}
@@ -194,7 +195,9 @@
             {{ throw(message="content/_index.md: unknown field \"" ~ key ~ "\" in a line. Expected label or text.") }}
           {%- endif -%}
         {%- endfor -%}
-        <strong>{{ line.label | default(value="") | str | markdown(inline=true) | trim | safe }}:</strong> {{ line.text | default(value="") | str | markdown(inline=true) | trim | safe }}
+        {%- set label = line.label | default(value="") | str | markdown(inline=true) | trim -%}
+        {%- if label %}<strong>{{ label | safe }}:</strong> {% endif -%}
+        {{ line.text | default(value="") | str | markdown(inline=true) | trim | safe }}
       {%- else -%}
         {{ line | str | markdown(inline=true) | trim | safe }}
       {%- endif -%}
