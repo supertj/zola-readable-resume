@@ -20,7 +20,7 @@ fonts, nothing else to serve.
 
 ## Installation
 
-You need Zola 0.23 or later.
+You need Zola 0.23.2 or later.
 
 Start a site and add the theme as a git submodule:
 
@@ -93,7 +93,8 @@ bullets = [
 ```
 
 `title` is your name. It goes at the top of the page and in the browser tab.
-`description` is what search engines show if you put the page online.
+`description` sets the page's meta description, which search engines may show
+in results if you put the page online.
 
 Each `[[extra.sections]]` starts a new section, and sections print in the order
 you write them. Section titles are set in capitals for you, so type them however
@@ -211,8 +212,8 @@ Georgia if the page is close to full.
 ## Putting it online
 
 Set `base_url` in `zola.toml` to the address the site will live at, then run
-`zola build`. The page ends up in `public/index.html`, along with the
-`robots.txt`, `sitemap.xml` and `404.html` that Zola always writes.
+`zola build`. The page ends up in `public/index.html`. With the default
+settings Zola also writes `robots.txt`, `sitemap.xml` and `404.html` there.
 
 The page shows everything in your contact line, phone number included, so check
 that before you publish it.

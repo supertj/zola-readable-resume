@@ -8,7 +8,8 @@
 # Your name, printed at the top and used in the browser tab
 title = "Olivia Bennett"
 
-# Shown in search results if you put the page online
+# The meta description. Search engines may show it in results if you put the
+# page online
 description = "Resume of Olivia Bennett, an economics student at Halden College."
 
 [extra]
