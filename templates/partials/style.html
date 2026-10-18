@@ -44,6 +44,8 @@ body {
 	padding: var(--sheet-margin);
 	background: var(--paper);
 	box-shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 12px 32px -16px rgb(0 0 0 / 0.3);
+	/* A long email address or link breaks instead of pushing the page sideways on a phone */
+	overflow-wrap: break-word;
 }
 
 h1,

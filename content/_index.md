@@ -2,8 +2,9 @@
 # Everything on your resume lives in this file. Save it while `zola serve`
 # is running and the page reloads.
 #
-# Inline Markdown works in every text field: **bold**, *italic* and
-# [links](https://example.com).
+# Inline Markdown works in the contact line and in every field under
+# [[extra.sections]]: **bold**, *italic* and [links](https://example.com).
+# Your name and the text of a contact link are printed as typed.
 
 # Your name, printed at the top and used in the browser tab
 title = "Olivia Bennett"

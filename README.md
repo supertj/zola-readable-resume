@@ -146,7 +146,9 @@ contact = [
 ]
 ```
 
-A `url` has to start with `https://`, `http://`, `mailto:` or `tel:`.
+A `url` has to start with `https://`, `http://`, `mailto:` or `tel:`. The text
+of a link like this, and your name in `title`, are printed as typed, without
+Markdown.
 
 A misspelled field name in a section, an entry or a contact item stops the
 build with a message saying which field and where, rather than quietly leaving
