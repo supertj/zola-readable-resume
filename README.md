@@ -220,6 +220,10 @@ settings Zola also writes `robots.txt`, `sitemap.xml` and `404.html` there.
 The page shows everything in your contact line, phone number included, so check
 that before you publish it.
 
+## Maintainer
+
+Super Lede ([Hello.cv profile](https://hello.cv/readableresume-templates)).
+
 ## License
 
 MIT. The person, schools and companies in the sample are made up.
